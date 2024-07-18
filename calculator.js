@@ -16,40 +16,66 @@ const appendDigitToNum = (num, digit) => {
     const digitArray = digit.split('');
     return numArray.concat(digitArray).join('');
 }
+const toMaxSizeString = (num) => {
+    if (Math.round(num) === num) {
+        let outString = num.toString();
+        if (outString.length > MAX_OPERAND_LENGTH) {
+            const cleanStr = outString
+                .replace("-", "")
+                .replace(".", "");
+            const numDigits = cleanStr.length - 1;
+            const mantissa = num / (10**numDigits);
+            const expStr = `e${numDigits}`;
+            let mantissaDigits = MAX_OPERAND_LENGTH - expStr.length;
+            // don't think this will ever happen
+            if (mantissaDigits < 0) return("Inf");
+            const mantissaStr = mantissa.toString().slice(0, mantissaDigits);
+            outString = `${mantissaStr}${expStr}`;
+        }
+        return (outString);
+    }
+    else {
+        const roundedNum = Math.round(num * (10**MAX_OPERAND_LENGTH)) / 10**MAX_OPERAND_LENGTH;
+        let outString = roundedNum.toString();
+        if (outString.length > MAX_OPERAND_LENGTH) outString = outString.slice(0,MAX_OPERAND_LENGTH);
+        return (outString);
+    }
+}
 
-const MAX_OPERAND_LENGTH = 11;
-let operand = '0';
-let lastOperand = null;
+// change this based on font size.
+const MAX_OPERAND_LENGTH = 16;
+let operand = {str :'0'};
+let lastOperand = {str: null};
+let displayOperand = operand;
 let currentOperation = null;
 let retypeCheck = false;
 
 // This will be executed if and only if operand, lastOperand and currentOperation are not null;
 function handleOperation() {
-    const operand_num = parseFloat(operand);
-    const lastOpd_num = parseFloat(lastOperand);
+    const operand_num = parseFloat(operand.str);
+    const lastOpd_num = parseFloat(lastOperand.str);
+    displayOperand = lastOperand;
     switch (currentOperation) {
         case '+':
-            return add(lastOpd_num, operand_num).toString();
+            return toMaxSizeString(add(lastOpd_num, operand_num));
         case '-':
-            return subtract(lastOpd_num, operand_num).toString();
+            return toMaxSizeString(subtract(lastOpd_num, operand_num));
         case '/':
             try {
-                return divide(lastOpd_num, operand_num).toString();
+                return toMaxSizeString(divide(lastOpd_num, operand_num));
             } catch (e) {
-                return 'ERR: DivBy0'
+                return 'Division by 0'
             }
         case '×':
-            return multiply(lastOpd_num, operand_num).toString();
+            return toMaxSizeString(multiply(lastOpd_num, operand_num));
         default:
-            return handleEquals();
+            return;
     }
 }
-
 function handleEquals() {
-    const currentOp = operand;
-    if (lastOperand === null) return operand;
-    if (currentOperation === null) return operand;
-    return handleOperation();
+    if (lastOperand.str === null) return;
+    if (currentOperation === null) return;
+    lastOperand.str = handleOperation();
 }
 
 function clearScreen() {
@@ -60,16 +86,15 @@ function clearScreen() {
     innerSpan.textContent = '';
     screenObj.appendChild(innerSpan);
 }
-
 function updateScreen() {
     const screenObj = document.querySelector("#calculator-screen");
-    const leadingZeros = MAX_OPERAND_LENGTH - operand.length;
+    let leadingZeros = MAX_OPERAND_LENGTH - displayOperand.str.length;
+    if (leadingZeros < 0) leadingZeros = 0;
     const leadingArr = Array(leadingZeros).fill('0');
     const innerSpan = document.createElement('span');
-    innerSpan.textContent = operand;
+    innerSpan.textContent = displayOperand.str;
     screenObj.textContent = `${leadingArr.join('')}`;
     screenObj.appendChild(innerSpan);
-
 }
 
 function makeNumpadButtons() {
@@ -81,12 +106,13 @@ function makeNumpadButtons() {
         buttonElement.innerText = button;
         buttonElement.addEventListener("click", _ => {
             if (retypeCheck) {
-                operand = button;
+                operand.str = button;
                 retypeCheck = false;
+                displayOperand = operand;
                 updateScreen();
                 return;
             }
-            operand = appendDigitToNum(operand, button);
+            operand.str = appendDigitToNum(operand.str, button);
             console.log(operand);
             updateScreen();
         })
@@ -102,7 +128,7 @@ function makeOperatorButtons() {
         buttonElement.innerText = button;
         buttonElement.addEventListener("click", _ => {
             currentOperation = button;
-            lastOperand = operand;
+            lastOperand.str = operand.str;
             retypeCheck = true;
         })
         operators.appendChild(buttonElement);
@@ -118,13 +144,14 @@ function makeControlButtons() {
         buttonElement.addEventListener("click", _ => {
             switch (button) {
                 case 'CL':
-                    operand = '0';
-                    lastOperand = null;
+                    operand.str = '0';
+                    lastOperand.str = null;
                     currentOperation = null;
+                    displayOperand = operand;
                     clearScreen();
                     break;
                 case '=':
-                    operand = handleEquals();
+                    handleEquals();
                     updateScreen();
                     break;
             }
@@ -133,7 +160,7 @@ function makeControlButtons() {
     }
 }
 
-
+clearScreen();
 makeNumpadButtons();
 makeOperatorButtons();
 makeControlButtons();
