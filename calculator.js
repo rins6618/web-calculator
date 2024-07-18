@@ -16,6 +16,17 @@ const appendDigitToNum = (num, digit) => {
     return numArray.concat(digitArray).join('');
 }
 
+function updateScreen() {
+    const screenObj = document.querySelector("#calculator-screen");
+    const leadingZeros = MAX_OPERAND_LENGTH - operand.length;
+    const leadingArr = Array(leadingZeros).fill('0');
+    const innerSpan = document.createElement('span');
+    innerSpan.textContent = operand;
+    screenObj.textContent = `${leadingArr.join('')}`;
+    screenObj.appendChild(innerSpan);
+
+}
+
 function makeNumpadButtons() {
     const numpad = document.querySelector("#calculator-numpad");
     const NUMPAD_BUTTONS = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0].map(num => num.toString());
@@ -26,11 +37,11 @@ function makeNumpadButtons() {
         buttonElement.addEventListener("click", _ => {
             operand = appendDigitToNum(operand, button);
             console.log(operand);
+            updateScreen();
         })
         numpad.appendChild(buttonElement);
     }
 }
-
 function makeOperatorButtons() {
     const operators = document.querySelector("#calculator-operators");
     const OPERATOR_BUTTONS = ["+", "-", '/', '×'];
@@ -52,12 +63,21 @@ function makeControlButtons() {
         const buttonElement = document.createElement("button");
         buttonElement.innerText = button;
         buttonElement.addEventListener("click", _ => {
-            //doOperatorLogic(button);
+            switch (button) {
+                case 'CL':
+                    operand = '0';
+                    updateScreen();
+                    break;
+                case '=':
+                    break;
+            }
         })
         control.appendChild(buttonElement);
     }
 }
 
+
 makeNumpadButtons();
 makeOperatorButtons();
 makeControlButtons();
+
