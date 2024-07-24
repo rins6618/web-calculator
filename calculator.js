@@ -41,7 +41,7 @@ const toMaxSizeString = (num) => {
         const roundedNum = Math.ceil(num * (10**MAX_OPERAND_LENGTH)) / 10**MAX_OPERAND_LENGTH;
         let outString = roundedNum.toString();
         // i do not trust floating point math.
-        if (outString.length > MAX_OPERAND_LENGTH) outString = outString.slice(0,MAX_OPERAND_LENGTH);
+        if (outString.length > MAX_OPERAND_LENGTH) outString = outString.slice(0,MAX_OPERAND_LENGTH - 1);
         return (outString);
     }
 }
