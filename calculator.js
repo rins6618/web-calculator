@@ -47,7 +47,8 @@ const toMaxSizeString = (num) => {
 }
 
 // change this based on font size.
-const MAX_OPERAND_LENGTH = 16;
+// FIX: Font fo monospace might just randomly change spacing size. wtf
+const MAX_OPERAND_LENGTH = 15;
 const operand = {str: '0'};
 const evalExp = {str: ''};
 
